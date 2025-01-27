@@ -1,4 +1,4 @@
-const sequelize = require('./db');
+const sequelize = require('./config/db');
 const HealthCheck = require('./models/HealthCheck');
 
 (async () => {
