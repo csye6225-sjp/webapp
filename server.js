@@ -1,3 +1,4 @@
+require("dotenv").config();
 const sequelize = require("./config/db");
 const express = require("express");
 const healthCheckRoutes = require("./routes/HealthCheckRoutes");
