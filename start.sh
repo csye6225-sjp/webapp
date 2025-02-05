@@ -42,17 +42,11 @@ BEGIN
    END IF;
 END
 \$\$;
-
--- Create database if it doesn't exist
-DO
-\$\$
-BEGIN
-   IF NOT EXISTS (SELECT FROM pg_database WHERE datname = '${DB_NAME}') THEN
-      CREATE DATABASE ${DB_NAME} OWNER ${DB_USER};
-   END IF;
-END
-\$\$;
 EOF
+
+sudo -u postgres psql -tc "SELECT 1 FROM pg_database WHERE datname = '${DB_NAME}'" | grep -q 1 || \
+sudo -u postgres psql -c "CREATE DATABASE ${DB_NAME} OWNER ${DB_USER};"
+
 
 echo "Database '${DB_NAME}' and user '${DB_USER}' setup complete."
 
@@ -72,19 +66,26 @@ else
   echo "User '${APP_USER}' already exists."
 fi
 
-# 7. Unzip the application in /opt/csye6225 directory
-echo "Deploying application to '${APP_DIR}'..."
-if [ -d "${APP_DIR}" ]; then
-  echo "Directory '${APP_DIR}' already exists. Removing old version..."
-  sudo rm -rf ${APP_DIR}
-fi
+# 7. Install Node.js and npm
+echo "Installing Node.js and npm..."
+sudo apt-get install -y nodejs npm
 
-sudo mkdir -p ${APP_DIR}
+# Verify installation
+node -v
+npm -v
+
+
 sudo unzip ${APP_ARCHIVE} -d ${APP_DIR}
 
-# 8. Update permissions of the folder and artifacts
+# 9. Update permissions of the folder and artifacts
 echo "Updating permissions for '${APP_DIR}'..."
 sudo chown -R ${APP_USER}:${APP_GROUP} ${APP_DIR}
 sudo chmod -R 750 ${APP_DIR}
 
-echo "Setup complete! Application is deployed in '${APP_DIR}'."
+# 10. Install Node.js dependencies
+echo "Installing Node.js dependencies..."
+cd ${APP_DIR}/webapp
+sudo -u ${APP_USER} npm install --omit=dev
+
+
+echo "Setup complete! Application is deployed on '${APP_DIR}'." 
