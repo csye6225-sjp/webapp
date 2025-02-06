@@ -87,5 +87,7 @@ echo "Installing Node.js dependencies..."
 cd ${APP_DIR}/webapp
 sudo -u ${APP_USER} npm install --omit=dev
 
+# 11. Run the application
+sudo -u ${APP_USER} DB_HOST=${DB_HOST} DB_PORT=${DB_PORT} DB_NAME=${DB_NAME} DB_USER=${DB_USER} DB_PASSWORD=${DB_PASSWORD} node server.js
 
-echo "Setup complete! Application is deployed on '${APP_DIR}'." 
+echo "Setup complete! Application is deployed and running on '${APP_DIR}'." 
