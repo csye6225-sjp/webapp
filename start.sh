@@ -91,3 +91,4 @@ sudo -u ${APP_USER} npm install --omit=dev
 sudo -u ${APP_USER} DB_HOST=${DB_HOST} DB_PORT=${DB_PORT} DB_NAME=${DB_NAME} DB_USER=${DB_USER} DB_PASSWORD=${DB_PASSWORD} node server.js
 
 echo "Setup complete! Application is deployed and running on '${APP_DIR}'." 
+
