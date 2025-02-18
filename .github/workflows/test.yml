@@ -9,6 +9,7 @@ on:
 
 jobs:
   test:
+    name: Unit test check
     runs-on: ubuntu-latest
 
     steps:
