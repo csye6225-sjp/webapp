@@ -1,10 +1,10 @@
 ---
 name: PR Test
-
 on:
   pull_request:
-    branches:
-      - '*'
+    types:
+      - opened
+      - synchronize
 
 jobs:
   test:
