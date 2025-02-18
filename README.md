@@ -149,6 +149,3 @@ You can manually test the `/healthz` endpoint using `curl` or a tool like Postma
 
 ## **License**
 This project is licensed under the MIT License. See the `LICENSE` file for more details.
-
-
-## testing runner for github actions
