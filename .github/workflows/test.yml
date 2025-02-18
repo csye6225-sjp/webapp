@@ -1,9 +1,10 @@
+---
 name: PR Test
 
 on:
   pull_request:
     branches:
-      - '*'
+      - main
 
 jobs:
   test:
@@ -21,5 +22,5 @@ jobs:
       - name: Install dependencies
         run: npm install --omit=dev
 
-      - name: Run tests with verbose output
-        run: npm test -- --verbose
+      - name: Run tests
+        run: npm test
