@@ -1,16 +1,39 @@
----
 name: PR Test
+
 on:
   pull_request:
     types:
       - opened
       - synchronize
 
-
 jobs:
   test:
-    name: Unit test check
+    name: Integration Test Check
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_DB: mydatabase
+        ports:
+          - 5434:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      PORT: 8081
+      DB_HOST: localhost
+      DB_PORT: 5434
+      DB_NAME: mydatabase
+      DB_USER: ${{ secrets.POSTGRES_USER }}
+      DB_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+      NODE_ENV: test
 
     steps:
       - name: Checkout code
@@ -23,6 +46,12 @@ jobs:
 
       - name: Install dependencies
         run: npm install
+
+      - name: Wait for PostgreSQL to be ready
+        run: |
+          for i in {1..10}; do
+            pg_isready -h $DB_HOST -p $DB_PORT && break || sleep 3;
+          done
 
       - name: Run tests
         run: npm test

@@ -4,8 +4,7 @@ const express = require("express");
 const healthCheckRoutes = require("./routes/HealthCheckRoutes");
 
 const app = express();
-app.use(express.json({ limit: "1kb" })); 
-
+app.use(express.json({ limit: "1kb" }));
 
 app.use("/healthz", healthCheckRoutes);
 
@@ -13,19 +12,20 @@ app.use("/healthz", healthCheckRoutes);
 // app.listen(PORT, () => {
 //   console.log(`Server running on port ${PORT}`);
 // });
-
-(async () => {
+if (process.env.NODE_ENV !== "test") {
+  (async () => {
     try {
-      await sequelize.sync({ alter: true }); 
+      await sequelize.sync({ alter: true });
       console.log("Database bootstrapped successfully!");
-  
-      
+
       const PORT = process.env.PORT || 8080;
       app.listen(PORT, () => {
         console.log(`Server running on port ${PORT}`);
       });
     } catch (error) {
       console.error("Error bootstrapping the database:", error);
-      process.exit(1); 
+      process.exit(1);
     }
   })();
+}
+module.exports = app;
