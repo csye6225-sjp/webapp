@@ -69,8 +69,10 @@ jobs:
           
       - name: Check Packer Template Format
         run: |
+          cd packer
           packer fmt ubuntu-node.pkr.hcl
 
       - name: Validate Packer Template
         run: |
+          cd packer
           packer validate ubuntu-node.pkr.hcl
