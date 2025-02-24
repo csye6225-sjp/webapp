@@ -50,7 +50,8 @@ jobs:
                         -var db_user=${{ secrets.DB_USER }} \
                         -var db_password=${{ secrets.DB_PASSWORD }} \
                         ubuntu-node.pkr.hcl | grep -o 'ami-[a-zA-Z0-9]*' | tail -n1)
-          echo "AMI_ID=${AMI_ID}" >> $GITHUB_ENV
+          echo "AMAZON_AMI_ID=${AMI_ID}" >> $GITHUB_ENV
+
 
       - name: Configure AWS credentials (Demo Account)
         uses: aws-actions/configure-aws-credentials@v2
@@ -58,3 +59,13 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_DEMO_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_DEMO_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
+
+
+      - name: Comment on PR with AMI ID
+        uses: peter-evans/create-or-update-comment@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            :tada: Congratulations! Your Amazon AMI has been built.
+            **Amazon AMI ID:** ${{ env.AMAZON_AMI_ID }}
