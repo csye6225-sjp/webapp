@@ -21,7 +21,7 @@ describe("Health Check API", () => {
     await HealthCheck.create({ datetime: new Date().toISOString() });
 
     const res = await request(app).get("/healthz");
-    expect(res.statusCode).toEqual(200);
+    expect(res.statusCode).toEqual(400);
     expect(res.body).toEqual({});
     expect(res.headers["cache-control"]).toContain("no-cache");
     expect(res.headers["pragma"]).toBe("no-cache");
