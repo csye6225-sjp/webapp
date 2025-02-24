@@ -1,0 +1,17 @@
+[Unit]
+Description=CSYE6225 App
+After=network.target
+
+[Service]
+Type=simple
+User=csye6225
+Group=csye6225
+EnvironmentFile=/etc/csye6225.env
+ExecStart=/usr/bin/node /opt/csye6225/webapp/src/server.js
+StandardOutput=journal
+StandardError=journal
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

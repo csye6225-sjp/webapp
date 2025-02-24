@@ -1,8 +1,8 @@
 require("dotenv").config({ path: ".env.test" });
 const request = require("supertest");
-const app = require("../server");
-const db = require("../config/db");
-const HealthCheck = require("../models/HealthCheck");
+const app = require("../src/server");
+const db = require("../src/config/db");
+const HealthCheck = require("../src/models/HealthCheck");
 
 describe("Health Check API", () => {
   beforeAll(async () => {

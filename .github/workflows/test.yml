@@ -44,14 +44,6 @@ jobs:
         with:
           node-version: "20"
 
-      - name: Check Packer Template Format
-        run: |
-          packer fmt -check -diff packer/ubuntu-node.pkr.hcl
-
-      - name: Validate Packer Template
-        run: |
-          packer validate packer/ubuntu-node.pkr.hcl
-
       - name: Install dependencies
         run: npm install
 
@@ -63,3 +55,15 @@ jobs:
 
       - name: Run tests
         run: npm test
+      
+      - name: Set up Packer
+        uses: hashicorp/setup-packer@v2
+
+      - name: Check Packer Template Format
+        run: |
+          cd packer
+          packer fmt -check -diff packer/ubuntu-node.pkr.hcl
+
+      - name: Validate Packer Template
+        run: |
+          packer validate packer/ubuntu-node.pkr.hcl
