@@ -52,12 +52,14 @@ jobs:
                         ubuntu-node.pkr.hcl | grep -o 'ami-[a-zA-Z0-9]*' | tail -n1)
           echo "AMAZON_AMI_ID=${AMI_ID}" >> $GITHUB_ENV
 
+
       - name: Configure AWS credentials (Demo Account)
         uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.AWS_DEMO_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_DEMO_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
+
 
       - name: Comment on PR with AMI ID
         uses: peter-evans/create-or-update-comment@v3
