@@ -61,7 +61,6 @@ jobs:
 
       - name: Check Packer Template Format
         run: |
-          cd packer
           packer fmt -check -diff packer/ubuntu-node.pkr.hcl
 
       - name: Validate Packer Template
