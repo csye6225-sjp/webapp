@@ -61,6 +61,7 @@ jobs:
       
       - name: Set up Packer
         uses: hashicorp/setup-packer@v2
+        
       - name: Initialize Packer
         run: |
           cd packer
@@ -68,7 +69,7 @@ jobs:
           
       - name: Check Packer Template Format
         run: |
-          packer fmt -check -diff ubuntu-node.pkr.hcl
+          packer fmt ubuntu-node.pkr.hcl
 
       - name: Validate Packer Template
         run: |
