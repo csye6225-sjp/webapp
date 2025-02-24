@@ -10,7 +10,8 @@
     "supertest": "^7.0.0"
   },
   "scripts": {
-    "start": "node server.js",
-    "test": "jest"
+    "start": "node src/server.js",
+    "test": "jest",
+    "zip": "mkdir -p artifact && zip -r artifact/webapp.zip . -x \"artifact/*\" -x \".git/*\" -x \"node_modules/*\" -x \"*.DS_Store\""
   }
 }

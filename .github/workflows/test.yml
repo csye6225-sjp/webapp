@@ -55,3 +55,24 @@ jobs:
 
       - name: Run tests
         run: npm test
+
+      - name: Zip the project
+        run: npm run zip
+      
+      - name: Set up Packer
+        uses: hashicorp/setup-packer@v2
+        
+      - name: Initialize Packer
+        run: |
+          cd packer
+          packer init ubuntu-node.pkr.hcl
+          
+      - name: Check Packer Template Format
+        run: |
+          cd packer
+          packer fmt ubuntu-node.pkr.hcl
+
+      - name: Validate Packer Template
+        run: |
+          cd packer
+          packer validate ubuntu-node.pkr.hcl

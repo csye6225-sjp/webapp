@@ -1,0 +1,60 @@
+name: Build Packer Image
+
+on:
+  pull_request:
+    types:
+      - closed
+    branches:
+      - main
+
+jobs:
+  build:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials (Dev Account)
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_DEV_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_DEV_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Set up Packer
+        uses: hashicorp/setup-packer@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Zip the project
+        run: npm run zip
+
+      - name: Build Packer Image
+        id: packer
+        env:
+          PACKER_LOG: 1
+        run: |
+          cd packer
+          packer init ubuntu-node.pkr.hcl
+          AMI_ID=$(packer build -var aws_region=${{ secrets.AWS_REGION }} \
+                        -var ami_users=${{ secrets.AMI_USERS }} \
+                        -var db_name=mydatabase \
+                        -var db_user=${{ secrets.DB_USER }} \
+                        -var db_password=${{ secrets.DB_PASSWORD }} \
+                        ubuntu-node.pkr.hcl | grep -o 'ami-[a-zA-Z0-9]*' | tail -n1)
+          echo "AMI_ID=${AMI_ID}" >> $GITHUB_ENV
+
+      - name: Configure AWS credentials (Demo Account)
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_DEMO_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_DEMO_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
