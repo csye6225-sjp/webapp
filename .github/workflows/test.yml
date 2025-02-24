@@ -55,6 +55,9 @@ jobs:
 
       - name: Run tests
         run: npm test
+
+      - name: Zip the project
+        run: npm run zip
       
       - name: Set up Packer
         uses: hashicorp/setup-packer@v2
