@@ -4,6 +4,10 @@ packer {
       version = ">= 1.0.0"
       source  = "github.com/hashicorp/amazon"
     }
+    googlecompute = {
+      source  = "github.com/hashicorp/googlecompute"
+      version = "~> 1"
+    }
   }
 }
 variable "aws_region" {
@@ -48,6 +52,54 @@ variable "db_password" {
   type    = string
   default = "mypassword"
 }
+variable "gcp_project_id_dev" {
+  type    = string
+  default = "csye-6225-452212"
+}
+
+variable "gcp_zone" {
+  type    = string
+  default = "us-central1-a"
+}
+
+variable "gcp_instance_type" {
+  type    = string
+  default = "e2-micro"
+}
+
+variable "ssh_username" {
+  type    = string
+  default = "your-ssh-username"
+}
+
+variable "gcp_source_image_family" {
+  type    = string
+  default = "ubuntu-2004-lts"
+}
+
+variable "gcp_disk_type" {
+  type    = string
+  default = "pd-standard"
+}
+
+variable "gcp_service_account_key_file_dev" {
+  type    = string
+  default = "./placeholder.json"
+}
+
+source "googlecompute" "gcp_dev" {
+  project_id          = var.gcp_project_id_dev
+  zone                = var.gcp_zone
+  machine_type        = var.gcp_instance_type
+  ssh_username        = var.ssh_username
+  source_image_family = var.gcp_source_image_family
+  image_name          = "webapp-ami-${formatdate("YYYY-MM-DD-hh-mm-ss", timestamp())}"
+  image_description   = "Custom app image for GCP DEV"
+  disk_size           = 25
+  disk_type           = var.gcp_disk_type
+  credentials_file    = var.gcp_service_account_key_file_dev
+}
+
 source "amazon-ebs" "ubuntu" {
   region        = var.aws_region
   ami_name      = "webapp-ami-${formatdate("YYYY-MM-DD-hh-mm-ss", timestamp())}"
@@ -60,6 +112,7 @@ source "amazon-ebs" "ubuntu" {
 build {
   sources = [
     "source.amazon-ebs.ubuntu",
+    "source.googlecompute.gcp_dev",
   ]
 
   provisioner "shell" {
