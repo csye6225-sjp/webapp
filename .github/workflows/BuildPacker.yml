@@ -36,6 +36,13 @@ jobs:
 
       - name: Zip the project
         run: npm run zip
+      
+      - name: Create GCP DEV Service Account Key JSON
+        id: gcp-dev
+        uses: jsdaniell/create-json@1.1.2
+        with:
+          name: "gcp_dev_key.json"
+          json: ${{ secrets.GCP_DEV_SERVICE_ACCOUNT_KEY }}
 
       - name: Build Packer Image
         id: packer
@@ -49,6 +56,7 @@ jobs:
                         -var db_name=mydatabase \
                         -var db_user=${{ secrets.DB_USER }} \
                         -var db_password=${{ secrets.DB_PASSWORD }} \
+                        -var "gcp_service_account_key_file_dev=$(pwd)/gcp_dev_key.json" \
                         ubuntu-node.pkr.hcl | grep -o 'ami-[a-zA-Z0-9]*' | tail -n1)
           echo "AMAZON_AMI_ID=${AMI_ID}" >> $GITHUB_ENV
 
@@ -59,6 +67,33 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_DEMO_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_DEMO_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
+      
+      - id: auth
+        name: Authenticating GCP Dev Account
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: '${{ secrets.GCP_DEV_SERVICE_ACCOUNT_KEY }}'
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Share Custom Image with DEMO Project
+        run: |
+          IMAGE_NAME=$(gcloud compute images list \
+            --filter="name~^webapp-" \
+            --sort-by=~creationTimestamp \
+            --limit=1 \
+            --format="value(name)")
+
+          echo "Found image: ${IMAGE_NAME}"
+          
+          NEW_IMAGE_NAME="webapp-demo-$(date +%Y%m%d%H%M%S)"
+          echo "Copying image as: ${NEW_IMAGE_NAME}"
+          
+          gcloud compute images create ${NEW_IMAGE_NAME} \
+          --source-image=${IMAGE_NAME} \
+          --source-image-project=${{ secrets.GCP_DEV_PROJECT_ID }} \
+          --project=${{ secrets.GCP_DEMO_PROJECT_ID }}
 
 
       - name: Comment on PR with AMI ID
