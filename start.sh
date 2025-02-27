@@ -19,6 +19,8 @@ echo "Updating package lists..."
 sudo apt-get update -y
 echo "Upgrading packages..."
 sudo apt-get upgrade -y
+echo "Fixing broken dependencies..."
+sudo apt-get install -f -y
 
 # 2. Install PostgreSQL
 echo "Installing PostgreSQL..."
