@@ -10,10 +10,10 @@ packer {
     }
   }
 }
-variable "aws_region" {
-  type    = string
-  default = "us-east-1"
-}
+# variable "aws_region" {
+#   type    = string
+#   default = "us-east-1"
+# }
 variable "source_ami" {
   type    = string
   default = "ami-04b4f1a9cf54c11d0" // Uses Ubuntu 24.04 LTS x86
@@ -88,7 +88,7 @@ variable "gcp_service_account_key_file_dev" {
 }
 
 source "googlecompute" "gcp_dev" {
-    project_id          = var.gcp_project_id_dev
+  project_id          = var.gcp_project_id_dev
   zone                = var.gcp_zone
   machine_type        = var.gcp_instance_type
   ssh_username        = var.ssh_username
