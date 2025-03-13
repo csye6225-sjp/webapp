@@ -88,7 +88,7 @@ variable "gcp_service_account_key_file_dev" {
 }
 
 source "googlecompute" "gcp_dev" {
-  project_id          = var.gcp_project_id_dev
+    project_id          = var.gcp_project_id_dev
   zone                = var.gcp_zone
   machine_type        = var.gcp_instance_type
   ssh_username        = var.ssh_username
