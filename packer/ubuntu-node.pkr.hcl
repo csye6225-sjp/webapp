@@ -10,10 +10,10 @@ packer {
     }
   }
 }
-# variable "aws_region" {
-#   type    = string
-#   default = "us-east-1"
-# }
+variable "aws_region" {
+  type    = string
+  default = "us-east-1"
+}
 variable "source_ami" {
   type    = string
   default = "ami-04b4f1a9cf54c11d0" // Uses Ubuntu 24.04 LTS x86
