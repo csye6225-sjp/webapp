@@ -10,12 +10,12 @@ const sequelize = new Sequelize(
     port: process.env.DB_PORT || 5432,
     dialect: "postgres",
     logging: false,
-    dialectOptions: {
+    dialectOptions: process.NODE_ENV != "test" && {
       ssl: {
-        require: true,          // forces SSL connection
-        rejectUnauthorized: false  // use 'false' if you do not have a CA certificate; not ideal for production
-      }
-    }
+        require: true, // forces SSL connection
+        rejectUnauthorized: false, // use 'false' if you do not have a CA certificate; not ideal for production
+      },
+    },
   }
 );
 
