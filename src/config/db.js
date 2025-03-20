@@ -11,7 +11,7 @@ const sequelize = new Sequelize(
     dialect: "postgres",
     logging: false,
     dialectOptions:
-      process.NODE_ENV != "test"
+      process.env.NODE_ENV != "test"
         ? {
             ssl: {
               require: true, // forces SSL connection
