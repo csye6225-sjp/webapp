@@ -81,6 +81,9 @@ async function uploadFile(req, res) {
 // GET /v1/file/{id}
 async function getFile(req, res) {
   try {
+    if (req.method === "HEAD") {
+        return res.status(405).end();
+      }
     const { id } = req.params;
     const record = await FileMetadata.findByPk(id);
     if (!record) {
