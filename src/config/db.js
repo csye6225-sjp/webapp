@@ -1,5 +1,4 @@
-require("dotenv").config({ path: process.env.NODE_ENV === "test" ? ".env.test" : ".env" });
-
+require("dotenv").config();
 const { Sequelize } = require("sequelize");
 
 const sequelize = new Sequelize(
@@ -7,10 +6,19 @@ const sequelize = new Sequelize(
   process.env.DB_USER,
   process.env.DB_PASSWORD,
   {
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
+    host: process.env.DB_HOST, // RDS endpoint (on EC2), or localhost (dev)
+    port: process.env.DB_PORT || 5432,
     dialect: "postgres",
     logging: false,
+    dialectOptions:
+      process.env.NODE_ENV != "test"
+        ? {
+            ssl: {
+              require: true, // forces SSL connection
+              rejectUnauthorized: false, // use 'false' if you do not have a CA certificate; not ideal for production
+            },
+          }
+        : {},
   }
 );
 

@@ -1,29 +1,28 @@
 require("dotenv").config();
-const sequelize = require("./config/db");
 const express = require("express");
-const healthCheckRoutes = require("./routes/HealthCheckRoutes");
+const sequelize = require("./config/db");
+const fileRoutes = require("./routes/FileRoutes");
+const healthCheckRoutes = require("./routes/HealthCheckRoutes")
 
 const app = express();
-app.use(express.json({ limit: "1kb" }));
+
+app.use(express.json());
+
+app.use("/v1/file", fileRoutes);
 
 app.use("/healthz", healthCheckRoutes);
-
-// const PORT = process.env.PORT || 8080;
-// app.listen(PORT, () => {
-//   console.log(`Server running on port ${PORT}`);
-// });
+// Sync DB & start server if not in test
 if (process.env.NODE_ENV !== "test") {
   (async () => {
     try {
-      await sequelize.sync({ alter: true });
-      console.log("Database bootstrapped successfully!");
-
+      await sequelize.sync();
+      console.log("DB synced!");
       const PORT = process.env.PORT || 8080;
       app.listen(PORT, "0.0.0.0", () => {
         console.log(`Server running on port ${PORT}`);
       });
-    } catch (error) {
-      console.error("Error bootstrapping the database:", error);
+    } catch (err) {
+      console.error("DB sync error:", err);
       process.exit(1);
     }
   })();
