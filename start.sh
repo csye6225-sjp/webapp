@@ -4,11 +4,11 @@
 set -e
 
 # Check if required environment variables are set
-if [ -z "$DB_NAME" ] || [ -z "$DB_USER" ] || [ -z "$DB_PASSWORD" ]; then
-  echo "Error: One or more required environment variables are missing."
-  echo "Please set DB_NAME, DB_USER, and DB_PASSWORD"
-  exit 1
-fi
+# if [ -z "$DB_NAME" ] || [ -z "$DB_USER" ] || [ -z "$DB_PASSWORD" ]; then
+#   echo "Error: One or more required environment variables are missing."
+#   echo "Please set DB_NAME, DB_USER, and DB_PASSWORD"
+#   exit 1
+# fi
 
 APP_DIR="/opt/csye6225"
 APP_GROUP="csye6225"  
@@ -22,45 +22,40 @@ sudo apt-get upgrade -y
 echo "Fixing broken dependencies..."
 sudo apt-get install -f -y
 
-# 2. Install PostgreSQL
-echo "Installing PostgreSQL..."
-sudo apt-get install -y postgresql postgresql-contrib unzip
+# # 2. Install PostgreSQL
+# echo "Installing PostgreSQL..."
+# sudo apt-get install -y postgresql postgresql-contrib unzip
 
-# 3. Start PostgreSQL service
-echo "Starting PostgreSQL service..."
-sudo systemctl start postgresql
-sudo systemctl enable postgresql
+# # 3. Start PostgreSQL service
+# echo "Starting PostgreSQL service..."
+# sudo systemctl start postgresql
+# sudo systemctl enable postgresql
 
-# 4. Create PostgreSQL database and user
-echo "Setting up PostgreSQL database and user..."
+# # 4. Create PostgreSQL database and user
+# echo "Setting up PostgreSQL database and user..."
 
-# Switch to postgres user to execute SQL commands
-sudo -u postgres psql <<EOF
--- Create user with password
-DO
-\$\$
-BEGIN
-   IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = '${DB_USER}') THEN
-      CREATE ROLE ${DB_USER} LOGIN PASSWORD '${DB_PASSWORD}';
-   END IF;
-END
-\$\$;
-EOF
+# # Switch to postgres user to execute SQL commands
+# sudo -u postgres psql <<EOF
+# -- Create user with password
+# DO
+# \$\$
+# BEGIN
+#    IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = '${DB_USER}') THEN
+#       CREATE ROLE ${DB_USER} LOGIN PASSWORD '${DB_PASSWORD}';
+#    END IF;
+# END
+# \$\$;
+# EOF
 
-sudo -u postgres psql -tc "SELECT 1 FROM pg_database WHERE datname = '${DB_NAME}'" | grep -q 1 || \
-sudo -u postgres psql -c "CREATE DATABASE ${DB_NAME} OWNER ${DB_USER};"
+# sudo -u postgres psql -tc "SELECT 1 FROM pg_database WHERE datname = '${DB_NAME}'" | grep -q 1 || \
+# sudo -u postgres psql -c "CREATE DATABASE ${DB_NAME} OWNER ${DB_USER};"
 
 
-echo "Database '${DB_NAME}' and user '${DB_USER}' setup complete."
+# echo "Database '${DB_NAME}' and user '${DB_USER}' setup complete."
 
 echo "Creating /etc/csye6225.env file with environment variables..."
 sudo tee /etc/csye6225.env > /dev/null <<EOF
 PORT=8080
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=${DB_NAME}
-DB_USER=${DB_USER}
-DB_PASSWORD=${DB_PASSWORD}
 EOF
 
 # 5. Create a new Linux group for the application
@@ -92,6 +87,11 @@ sudo apt-get install -y nodejs npm
 # Verify installation
 node -v
 npm -v
+
+sudo -u csye6225 bash -c "cd /opt/csye6225 && ls"
+
+echo "Installing unzip..."
+sudo apt-get install -y unzip
 
 sudo unzip /opt/csye6225/webapp.zip -d /opt/csye6225/webapp
 sudo chown -R csye6225:csye6225 /opt/csye6225/webapp

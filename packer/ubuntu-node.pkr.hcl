@@ -112,7 +112,6 @@ source "amazon-ebs" "ubuntu" {
 build {
   sources = [
     "source.amazon-ebs.ubuntu",
-    "source.googlecompute.gcp_dev",
   ]
 
   provisioner "shell" {
@@ -161,11 +160,11 @@ build {
     script = "../start.sh"
     environment_vars = [
       "PORT=${var.port}",
-      "DB_PORT=${var.db_port}",
-      "DB_HOST=${var.db_host}",
-      "DB_NAME=${var.db_name}",
-      "DB_USER=${var.db_user}",
-      "DB_PASSWORD=${var.db_password}",
+      # "DB_PORT=${var.db_port}",
+      # "DB_HOST=${var.db_host}",
+      # "DB_NAME=${var.db_name}",
+      # "DB_USER=${var.db_user}",
+      # "DB_PASSWORD=${var.db_password}",
     ]
   }
 
