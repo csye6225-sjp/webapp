@@ -15,7 +15,7 @@
   },
   "scripts": {
     "start": "node src/server.js",
-    "test": "jest",
+    "test": "jest --detectOpenHandles",
     "zip": "mkdir -p artifact && zip -r artifact/webapp.zip . -x \"artifact/*\" -x \".git/*\" -x \"node_modules/*\" -x \"*.DS_Store\" -x \".env/*\""
   }
 }

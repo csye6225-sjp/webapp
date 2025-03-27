@@ -18,11 +18,20 @@ const logger = createLogger({
   ]
 });
 
-// Create a StatsD client (for custom metrics)
-const statsdClient = new StatsD({
-  host: process.env.STATSD_HOST || 'localhost',
-  port: process.env.STATSD_PORT || 8125,
-});
+if (process.env.NODE_ENV === 'test') {
+  // Create a dummy/stub client that does nothing
+  statsdClient = {
+    increment: () => {},
+    timing: () => {}
+  };
+} else {
+  StatsD = require('node-statsd');
+  statsdClient = new StatsD({
+    host: process.env.STATSD_HOST || 'localhost',
+    port: process.env.STATSD_PORT || 8125,
+  });
+}
+
 
 // Middleware to log each request and collect metrics
 function metricsLogger(req, res, next) {
