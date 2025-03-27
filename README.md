@@ -27,7 +27,14 @@
 
 ## **Project Structure**
 ```
-webapp/
+.github/
+└── workflows/        # GitHub Actions workflow files
+artifact/             # Build artifacts (e.g., zipped code)
+node_modules/         # Node.js dependencies (ignored by Git)
+packer/
+├── placeholder.json  # Placeholder or sample JSON file
+└── ubuntu-node.pkr.hcl  # Packer template for building a custom AMI
+src/
 ├── models/               # Database models (Sequelize)
 │   └── HealthCheck.js    # Health check table model
 ├── routes/               # API route definitions
@@ -40,7 +47,18 @@ webapp/
 │   └── db.js             # Database configuration
 ├── server.js             # Entry point of the application
 ├── package.json          # Dependencies and scripts
-└── README.md             # Documentation
+└── README.md             # Documentation                  # Application source code
+tests/
+├── dbTest.js         # Simple DB connection test
+└── healthCheck.test.js  # Tests for the /healthz endpoint
+.env                  # Environment variables file (ignored by Git)
+.gitignore
+LICENSE
+package-lock.json
+package.json
+README.md             # Project documentation
+start.sh             # Script used by Packer or local setup
+
 ```
 
 ---

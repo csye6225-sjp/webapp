@@ -8,8 +8,8 @@ User=csye6225
 Group=csye6225
 EnvironmentFile=/etc/csye6225.env
 ExecStart=/usr/bin/node /opt/csye6225/webapp/src/server.js
-StandardOutput=journal
-StandardError=journal
+StandardOutput=append:/var/log/webapp.log
+StandardError=append:/var/log/webapp.log
 Restart=on-failure
 RestartSec=5
 
