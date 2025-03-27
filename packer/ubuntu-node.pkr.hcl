@@ -164,7 +164,6 @@ build {
 provisioner "shell" {
   inline = [
     "sudo mv /tmp/cloudwatch-agent-config.json /opt/cloudwatch-agent-config.json",
-    "sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c file:/opt/cloudwatch-agent-config.json -s"
   ]
 }
 
