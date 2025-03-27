@@ -2,11 +2,14 @@ require("dotenv").config();
 const express = require("express");
 const sequelize = require("./config/db");
 const fileRoutes = require("./routes/FileRoutes");
-const healthCheckRoutes = require("./routes/HealthCheckRoutes")
+const healthCheckRoutes = require("./routes/HealthCheckRoutes");
+const { metricsLogger, logger } = require("../middlewares/metricsLogger");
 
 const app = express();
 
 app.use(express.json());
+app.use(metricsLogger);
+
 
 app.use("/v1/file", fileRoutes);
 
@@ -16,13 +19,13 @@ if (process.env.NODE_ENV !== "test") {
   (async () => {
     try {
       await sequelize.sync();
-      console.log("DB synced!");
+      logger.info("DB synced!");
       const PORT = process.env.PORT || 8080;
       app.listen(PORT, "0.0.0.0", () => {
-        console.log(`Server running on port ${PORT}`);
+        logger.info(`Server running on port ${PORT}`);
       });
     } catch (err) {
-      console.error("DB sync error:", err);
+      logger.error("DB sync error:", err);
       process.exit(1);
     }
   })();

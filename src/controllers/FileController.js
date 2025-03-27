@@ -2,11 +2,13 @@
 const { v4: uuidv4 } = require("uuid");
 const s3 = require("../config/s3");
 const FileMetadata = require("../models/FileMetadata");
+const { logger } = require("../../middlewares/metricsLogger");
 
 async function uploadFile(req, res) {
   try {
     // If no file was provided
     if (!req.file) {
+        logger.warn("Upload attempt without a file");
       return res
         .status(400)
         .json({ error: "No file in request (profilePic)." });
@@ -26,8 +28,9 @@ async function uploadFile(req, res) {
           Body: req.file.buffer,
           ContentType: req.file.mimetype || "application/octet-stream",
         }).promise();
+        logger.info(`S3 upload successful for ${key}`);
     } catch (s3Error) {
-      console.error("S3 upload failed:", s3Error);
+      logger.error("S3 upload failed:", s3Error);
       return res.status(500).json({ error: "S3 Upload Failed" });
     }
 
@@ -44,16 +47,18 @@ async function uploadFile(req, res) {
       fileKey: key,
       url: url,
     });
+    logger.info(`DB record created for file ${originalName} with id ${folderId}`);
   } catch (dbError) {
-    console.error("DB record creation failed:", dbError);
+    logger.error(`DB record creation failed for ${originalName}: ${dbError}`);
     // Rollback: delete the uploaded file from S3
     try {
       await s3.deleteObject({
         Bucket: process.env.S3_BUCKET,
         Key: key,
       }).promise();
+      logger.info(`Rollback: S3 object deleted for ${key}`);
     } catch (rollbackError) {
-      console.error("Rollback failed (S3 delete):", rollbackError);
+        logger.error(`Rollback failed (S3 delete) for ${key}: ${rollbackError}`);
     }
     return res.status(500).json({ error: "DB Record Creation Failed" });
   }
@@ -73,7 +78,7 @@ async function uploadFile(req, res) {
       upload_date: record.createdAt, // Or format it if needed
     });
   } catch (err) {
-    console.error("Error uploading file:", err);
+    logger.error(`Unexpected error in uploadFile: ${err}`);
     return res.status(500).json({ error: "Internal Server Error" });
   }
 }
@@ -87,20 +92,19 @@ async function getFile(req, res) {
     const { id } = req.params;
     const record = await FileMetadata.findByPk(id);
     if (!record) {
+        logger.warn(`File not found with id ${id}`);
       return res.status(404).json({ error: "File not found" });
     }
-
-    if (!record) {
-      return res.status(404).json({ error: "File not found" });
-    }
+    logger.info(`File retrieved with id ${id}`);
     return res.status(200).json({
       file_name: record.fileName,
       id: record.id,
       url: record.url,
       upload_date: record.createdAt,
     });
+    
   } catch (err) {
-    console.error("Error fetching file:", err);
+    logger.error(`Error fetching file with id ${req.params.id}: ${err}`);
     return res.status(404).json({ error: "File not found" });
   }
 }
@@ -111,6 +115,7 @@ async function deleteFile(req, res) {
       const { id } = req.params;
       const record = await FileMetadata.findByPk(id);
       if (!record) {
+        logger.warn(`Delete attempt for non-existent file id ${id}`);
         return res.sendStatus(404);
       }
       // Delete from S3
@@ -119,15 +124,17 @@ async function deleteFile(req, res) {
           Bucket: process.env.S3_BUCKET,
           Key: record.fileKey,
         }).promise();
+        logger.info(`S3 deletion successful for file key ${record.fileKey}`);
       } catch (s3DeleteError) {
-        console.error("Error deleting file from S3:", s3DeleteError);
+        logger.error(`S3 deletion failed for file key ${record.fileKey}: ${s3DeleteError}`);
         return res.status(500).json({ error: "Failed to delete file from S3" });
       }
       // Delete DB record
       await record.destroy();
+      logger.info(`DB record deleted for file id ${id}`);
       return res.sendStatus(204);
     } catch (err) {
-      console.error("Error deleting file:", err);
+        logger.error(`Error deleting file with id ${req.params.id}: ${err}`);
       return res.status(500).json({ error: "Internal Server Error" });
     }
   }

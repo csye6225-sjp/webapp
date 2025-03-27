@@ -115,6 +115,14 @@ build {
   ]
 
   provisioner "shell" {
+  inline = [
+    "wget https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb -O /tmp/amazon-cloudwatch-agent.deb",
+    "sudo dpkg -i /tmp/amazon-cloudwatch-agent.deb",
+    "sudo apt-get -f install -y"
+  ]
+}
+
+  provisioner "shell" {
     inline = [
       "sudo groupadd -f csye6225",
       "if ! id -u csye6225 > /dev/null 2>&1; then sudo useradd -m -g csye6225 -s /usr/sbin/nologin csye6225; fi"
@@ -124,6 +132,7 @@ build {
   provisioner "shell" {
     inline = [
       "sudo mkdir -p /opt/csye6225",
+      "sudo touch /var/log/webapp.log",
     ]
   }
   provisioner "shell" {
@@ -146,6 +155,18 @@ build {
     source      = "../artifact/webapp.zip"
     destination = "/tmp/webapp.zip"
   }
+
+  provisioner "file" {
+  source      = "../metrics/cloudwatch-agent-config.json"  
+  destination = "/tmp/cloudwatch-agent-config.json"
+}
+
+provisioner "shell" {
+  inline = [
+    "sudo mv /tmp/cloudwatch-agent-config.json /opt/cloudwatch-agent-config.json",
+    "sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c file:/opt/cloudwatch-agent-config.json -s"
+  ]
+}
 
   // Move file to /opt/csye6225 with sudo and update permissions
   provisioner "shell" {
