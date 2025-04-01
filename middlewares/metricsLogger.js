@@ -25,7 +25,6 @@ if (process.env.NODE_ENV === 'test') {
     timing: () => {}
   };
 } else {
-  StatsD = require('node-statsd');
   statsdClient = new StatsD({
     host: process.env.STATSD_HOST || 'localhost',
     port: process.env.STATSD_PORT || 8125,
