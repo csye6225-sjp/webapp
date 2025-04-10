@@ -3,7 +3,7 @@ name: Build Packer Image
 on:
   pull_request:
     types:
-      - closed
+      - opened
     branches:
       - main
 
@@ -11,6 +11,9 @@ jobs:
   build:
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
+
+    env:
+      AWS_REGION: ${{ secrets.AWS_REGION }}
 
     steps:
       - name: Checkout repository
@@ -64,6 +67,39 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_DEMO_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_DEMO_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
+      
+      - name: Update Launch Template with Latest AMI
+        run: |
+          # Update the launch template with the new AMI ID.
+          # This example uses AWS CLI’s update-launch-template command.
+          aws ec2 modify-launch-template --launch-template-id $(aws ec2 describe-launch-templates --filters "Name=tag:Name,Values=CSYE6225-Webapp-LaunchTemplate" --query "LaunchTemplates[0].LaunchTemplateId" --output text) \
+            --launch-template-data "{\"ImageId\": \"${{ env.AMAZON_AMI_ID }}\"}"
+
+      - name: Trigger Auto Scaling Instance Refresh
+        id: asg-refresh
+        run: |
+          ASG_NAME=${{ secrets.AWS_DEMO_AUTO_SCALING_GROUP_NAME }}
+          aws autoscaling start-instance-refresh --auto-scaling-group-name "$ASG_NAME" \
+            --preferences '{"MinHealthyPercentage":100, "InstanceWarmup":60}'
+          echo "Started instance refresh for ASG: $ASG_NAME"
+
+      - name: Wait for Instance Refresh to Complete
+        run: |
+          ASG_NAME=${{ secrets.AWS_DEMO_AUTO_SCALING_GROUP_NAME }}
+          # Poll every 30 seconds until instance refresh status is not in progress
+          refresh_status="InProgress"
+          while [ "$refresh_status" = "InProgress" ]; do
+            echo "Waiting for instance refresh to complete..."
+            sleep 30
+            refresh_status=$(aws autoscaling describe-instance-refreshes --auto-scaling-group-name "$ASG_NAME" --query "InstanceRefreshes[0].Status" --output text)
+            echo "Instance refresh status: $refresh_status"
+          done
+          if [ "$refresh_status" = "Successful" ]; then
+            echo "Instance refresh completed successfully."
+          else
+            echo "Instance refresh failed with status: $refresh_status"
+            exit 1
+          fi
       
       - id: auth
         name: Authenticating GCP Dev Account
