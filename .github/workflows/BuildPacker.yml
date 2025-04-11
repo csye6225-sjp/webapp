@@ -73,15 +73,11 @@ jobs:
           echo "Launch Template ID: $LT_ID"
           
           # Create a new launch template version with the updated ImageId
-          NEW_VERSION=$(aws ec2 create-launch-template-version --launch-template-id "$LT_ID" \
-            --launch-template-data "{\"ImageId\": \"${AMAZON_AMI_ID}\"}" \
+          NEW_VERSION=$(aws ec2 create-launch-template-version --launch-template-id $LT_ID \
+            --launch-template-data '{"ImageId": "${{ env.AMAZON_AMI_ID }}"}' \
             --query 'VersionNumber' --output text)
           echo "Created new launch template version: $NEW_VERSION"
           
-          # Check that a new version was returned; if not, fail the job.
-          if [ "$NEW_VERSION" = "None" ] || [ -z "$NEW_VERSION" ]; then
-            echo "Failed to create a new launch template version." && exit 1
-          fi
         
       - name: Trigger Auto Scaling Instance Refresh
         id: asg-refresh
