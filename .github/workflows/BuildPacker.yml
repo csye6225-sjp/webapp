@@ -68,11 +68,20 @@ jobs:
       
       - name: Update Launch Template with Latest AMI
         run: |
-          # Update the launch template with the new AMI ID.
-          # This example uses AWS CLI’s update-launch-template command.
-          aws ec2 modify-launch-template --launch-template-id $(aws ec2 describe-launch-templates --filters "Name=tag:Name,Values=CSYE6225-Webapp-LaunchTemplate" --query "LaunchTemplates[0].LaunchTemplateId" --output text) \
-            --launch-template-data "{\"ImageId\": \"${{ env.AMAZON_AMI_ID }}\"}"
-
+          # Retrieve the Launch Template ID based on the tag "CSYE6225-Webapp-LaunchTemplate"
+          LT_ID=$(aws ec2 describe-launch-templates --filters "Name=tag:Name,Values=CSYE6225-Webapp-LaunchTemplate" --query "LaunchTemplates[0].LaunchTemplateId" --output text)
+          echo "Launch Template ID: $LT_ID"
+          
+          # Create a new launch template version with the updated ImageId
+          NEW_VERSION=$(aws ec2 create-launch-template-version --launch-template-id $LT_ID \
+            --launch-template-data "{\"ImageId\": \"${{ env.AMAZON_AMI_ID }}\"}" \
+            --query 'VersionNumber' --output text)
+          echo "Created new launch template version: $NEW_VERSION"
+          
+          # Optionally set the new version as the default version
+          aws ec2 modify-launch-template --launch-template-id $LT_ID --default-version "$NEW_VERSION"
+          echo "Set default launch template version to: $NEW_VERSION"
+        
       - name: Trigger Auto Scaling Instance Refresh
         id: asg-refresh
         run: |
