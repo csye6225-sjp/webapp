@@ -74,15 +74,17 @@ jobs:
           
           # Create a new launch template version with the updated ImageId
           NEW_VERSION=$(aws ec2 create-launch-template-version --launch-template-id $LT_ID \
-            --launch-template-data "{\"ImageId\": \"${{ env.AMAZON_AMI_ID }}\"}" \
-            --query 'VersionNumber' --output text)
-          echo "Created new launch template version: $NEW_VERSION"
+            --launch-template-data '{
+                "ImageId": "ami-07b9b495f8b186850",
+                "InstanceType": "t3.micro"
+            }'
           
         
       - name: Trigger Auto Scaling Instance Refresh
         id: asg-refresh
         run: |
           ASG_NAME=${{ secrets.AWS_DEMO_AUTO_SCALING_GROUP_NAME }}
+          echo $ASG_NAME
           aws autoscaling start-instance-refresh --auto-scaling-group-name "$ASG_NAME" \
             --preferences '{"MinHealthyPercentage":100, "InstanceWarmup":60}'
           echo "Started instance refresh for ASG: $ASG_NAME"
