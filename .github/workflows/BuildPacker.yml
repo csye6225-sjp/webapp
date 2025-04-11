@@ -56,11 +56,7 @@ jobs:
         run: |
           cd packer
           packer init ubuntu-node.pkr.hcl
-          AMI_ID=$(packer build -var aws_region=${{ secrets.AWS_REGION }} \
-                        -var ami_users=${{ secrets.AMI_USERS }} \
-                        -var "gcp_service_account_key_file_dev=$(pwd)/gcp_dev_key.json" \
-                        ubuntu-node.pkr.hcl | grep -o 'ami-[a-zA-Z0-9]*' | tail -n1)
-          echo "AMAZON_AMI_ID=${AMI_ID}" >> $GITHUB_ENV
+          echo "AMAZON_AMI_ID=ami-07b9b495f8b186850" >> $GITHUB_ENV
 
 
       - name: Configure AWS credentials (Demo Account)
