@@ -74,7 +74,7 @@ jobs:
           
           # Create a new launch template version with the updated ImageId
           NEW_VERSION=$(aws ec2 create-launch-template-version --launch-template-id $LT_ID \
-            --launch-template-data "{\"ImageId\": \"${AMAZON_AMI_ID}\", \"InstanceType\": \"t3.micro\"}" \
+            --launch-template-data "{\"ImageId\": \"${AMAZON_AMI_ID}\", \"InstanceType\": \"t2.micro\"}" \
             --query 'VersionNumber' --output text)
           echo "Created new launch template version: $NEW_VERSION"
           
