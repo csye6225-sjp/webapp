@@ -3,9 +3,10 @@ name: Build Packer Image
 on:
   pull_request:
     types:
-      - closed
-    branches:
-      - main
+      - opened
+      - synchronize
+    # branches:
+    #   - main
 
 jobs:
   build:
@@ -39,7 +40,7 @@ jobs:
 
       - name: Zip the project
         run: npm run zip
-      
+
       - name: Create GCP DEV Service Account Key JSON
         id: gcp-dev
         uses: jsdaniell/create-json@1.1.2
@@ -60,7 +61,6 @@ jobs:
                         ubuntu-node.pkr.hcl | grep -o 'ami-[a-zA-Z0-9]*' | tail -n1)
           echo "AMAZON_AMI_ID=${AMI_ID}" >> $GITHUB_ENV
 
-
       - name: Configure AWS credentials (Demo Account)
         uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -68,19 +68,53 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_DEMO_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
       
-      - name: Update Launch Template with Latest AMI
+      - name: Ensure jq is installed
         run: |
-          # Retrieve the Launch Template ID based on the tag "CSYE6225-Webapp-LaunchTemplate"
-          LT_ID=$(aws ec2 describe-launch-templates --filters "Name=tag:Name,Values=CSYE6225-Webapp-LaunchTemplate" --query "LaunchTemplates[0].LaunchTemplateId" --output text)
-          echo "Launch Template ID: $LT_ID"
+          if ! command -v jq &> /dev/null
+          then
+            echo "🔧 jq not found, installing..."
+            sudo apt-get update && sudo apt-get install -y jq
+          else
+            echo "✅ jq is already installed"
+          fi
           
-          # Create a new launch template version with the updated ImageId
-          NEW_VERSION=$(aws ec2 create-launch-template-version --launch-template-id $LT_ID \
-            --launch-template-data "{\"ImageId\": \"${AMAZON_AMI_ID}\", \"InstanceType\": \"t2.small\"}" \
-            --query 'VersionNumber' --output text)
-          echo "Created new launch template version: $NEW_VERSION"
-          
-        
+
+      - name: Update Launch Template with New AMI (Preserving All Config)
+        run: |
+          # Set IDs
+          LT_ID="lt-0fbb4e360ef6273f7"
+          REGION="${{ secrets.AWS_REGION }}"
+          AMI_ID="${{ env.AMAZON_AMI_ID }}"
+
+          echo " Fetching latest launch template version..."
+          LATEST_VERSION=$(aws ec2 describe-launch-templates \
+            --launch-template-ids "$LT_ID" \
+            --region "$REGION" \
+            --query 'LaunchTemplates[0].LatestVersionNumber' \
+            --output text)
+
+          echo "📦 Downloading launch template config..."
+          aws ec2 describe-launch-template-versions \
+            --launch-template-id "$LT_ID" \
+            --versions "$LATEST_VERSION" \
+            --region "$REGION" \
+            --query 'LaunchTemplateVersions[0].LaunchTemplateData' \
+            --output json > base.json
+
+          echo " Replacing ImageId in launch template config..."
+          jq --arg AMI "$AMI_ID" '.ImageId = $AMI' base.json > new-data.json
+
+          echo " Creating new launch template version..."
+          NEW_VERSION=$(aws ec2 create-launch-template-version \
+            --launch-template-id "$LT_ID" \
+            --launch-template-data file://new-data.json \
+            --query 'LaunchTemplateVersion.VersionNumber' \
+            --region "$REGION" \
+            --output text)
+
+          echo "✅ New Launch Template Version: $NEW_VERSION"
+          echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
+
       - name: Trigger Auto Scaling Instance Refresh
         id: asg-refresh
         run: |
@@ -107,12 +141,12 @@ jobs:
             echo "Instance refresh failed with status: $refresh_status"
             exit 1
           fi
-      
+
       - id: auth
         name: Authenticating GCP Dev Account
         uses: google-github-actions/auth@v2
         with:
-          credentials_json: '${{ secrets.GCP_DEV_SERVICE_ACCOUNT_KEY }}'
+          credentials_json: "${{ secrets.GCP_DEV_SERVICE_ACCOUNT_KEY }}"
 
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
@@ -126,15 +160,14 @@ jobs:
       #       --format="value(name)")
 
       #     echo "Found image: ${IMAGE_NAME}"
-          
+
       #     NEW_IMAGE_NAME="webapp-demo-$(date +%Y%m%d%H%M%S)"
       #     echo "Copying image as: ${NEW_IMAGE_NAME}"
-          
+
       #     gcloud compute images create ${NEW_IMAGE_NAME} \
       #     --source-image=${IMAGE_NAME} \
       #     --source-image-project=${{ secrets.GCP_DEV_PROJECT_ID }} \
       #     --project=${{ secrets.GCP_DEMO_PROJECT_ID }}
-
 
       - name: Comment on PR with AMI ID
         uses: peter-evans/create-or-update-comment@v3
