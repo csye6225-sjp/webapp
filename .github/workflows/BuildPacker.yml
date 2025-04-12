@@ -3,10 +3,9 @@ name: Build Packer Image
 on:
   pull_request:
     types:
-      - opened
-      - synchronize
-    # branches:
-    #   - main
+      - closed
+    branches:
+      - main
 
 jobs:
   build:
