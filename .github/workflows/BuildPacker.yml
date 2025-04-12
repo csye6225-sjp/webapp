@@ -3,15 +3,13 @@ name: Build Packer Image
 on:
   pull_request:
     types:
-      - opened
-      - synchronize
-      - reopened
-    # branches:
-    #   - main
+      - closed
+    branches:
+      - main
 
 jobs:
   build:
-    
+    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
 
     env:
