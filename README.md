@@ -160,6 +160,18 @@ You can manually test the `/healthz` endpoint using `curl` or a tool like Postma
 
 ---
 
+## Certification
+### **Certificate Import**
+
+```bash
+aws acm import-certificate \
+  --certificate fileb://demo_sahanajprakash_me.crt \
+  --private-key fileb://private.key \
+  --certificate-chain fileb://demo_sahanajprakash_me.ca-bundle \
+  --region us-east-1 \
+  --profile demo
+```
+
 ## **Known Issues**
 - None at the moment. Feel free to raise issues or PRs if you find bugs.
 - 
