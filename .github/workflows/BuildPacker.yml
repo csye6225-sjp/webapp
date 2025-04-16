@@ -81,9 +81,15 @@ jobs:
       - name: Update Launch Template with New AMI (Preserving All Config)
         run: |
           # Set IDs
-          LT_ID="lt-0fbb4e360ef6273f7"
           REGION="${{ secrets.AWS_REGION }}"
           AMI_ID="${{ env.AMAZON_AMI_ID }}"
+
+          LT_ID=$(aws ec2 describe-launch-templates \
+          --filters "Name=tag:Name,Values=CSYE6225-Webapp-LaunchTemplate" \
+          --query "LaunchTemplates[0].LaunchTemplateId" \
+          --region "$REGION" \
+          --output text)
+
 
           echo " Fetching latest launch template version..."
           LATEST_VERSION=$(aws ec2 describe-launch-templates \
