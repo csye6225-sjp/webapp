@@ -12,8 +12,10 @@ app.use(metricsLogger);
 
 
 app.use("/v1/file", fileRoutes);
+app.use("/v2/file", fileRoutes);
 
 app.use("/healthz", healthCheckRoutes);
+app.use("/cicd", healthCheckRoutes);
 // Sync DB & start server if not in test
 if (process.env.NODE_ENV !== "test") {
   (async () => {
